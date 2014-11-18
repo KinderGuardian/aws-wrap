@@ -128,7 +128,10 @@ package object dynamodb {
     )
 
   /** String to a string AttributeValue */
-  implicit val stringToAttributeValue = (x: String) => new AttributeValue().withS(x)
+  implicit val stringToAttributeValue = (x: String) => x match {
+    case a if a.isEmpty => new AttributeValue().withS("EMPTY_STRING")
+    case _ => new AttributeValue().withS(x)
+  }
   /** String collection to a string set AttributeValue */
   implicit val stringIterableToAttributeValue = (x: Iterable[String]) => new AttributeValue().withSS(x.asJavaCollection)
 
@@ -223,7 +226,13 @@ package object dynamodb {
     }
 
   /** string AttributeValue to String */
-  implicit val attributeValueToString = (x: AttributeValue) => catchAndRethrowConversion { x.getS }
+  implicit val attributeValueToString = (x: AttributeValue) => catchAndRethrowConversion {
+    val a = x.getS
+    a match {
+      case "EMPTY_STRING" => ""
+      case _ => a
+    }
+  }
   /** string set AttributeValue to Set[String] */
   implicit val attributeValueToStringSet = (x: AttributeValue) => catchAndRethrowConversion { x.getSS.asScala.toSet }
 

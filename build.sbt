@@ -5,9 +5,9 @@ licenses in ThisBuild += ("Apache-2.0", url("http://www.apache.org/licenses/LICE
 
 version in ThisBuild := "0.6.1"
 
-scalaVersion in ThisBuild := "2.11.1"
+scalaVersion in ThisBuild := "2.11.4"
 
-crossScalaVersions in ThisBuild := Seq("2.10.4", "2.11.1")
+crossScalaVersions in ThisBuild := Seq("2.10.4", "2.11.4")
 
 scalacOptions in ThisBuild ++= Seq("-feature", "-deprecation", "-unchecked")
 
@@ -22,7 +22,7 @@ resolvers in ThisBuild ++= Seq(
 
 lazy val awsWrap = project in file(".")
 
-name := "aws-wrap"
+name := "aws-wrap-kg"
 
 libraryDependencies ++= Seq(
   Dependencies.Compile.awsJavaSDK % "provided",

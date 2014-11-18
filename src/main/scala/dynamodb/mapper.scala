@@ -256,7 +256,7 @@ trait AmazonDynamoDBScalaMapper {
   /**
     * An abstract ExecutionContext.
     */
-  protected implicit val execCtx: ExecutionContext
+  implicit val execCtx: ExecutionContext
 
   /**
     * The mapping configuration.
@@ -276,7 +276,7 @@ trait AmazonDynamoDBScalaMapper {
     *     the object serializer.
     * @return the transformed table name.
     */
-  protected def tableName[T](implicit serializer: DynamoDBSerializer[T]): String =
+  def tableName[T](implicit serializer: DynamoDBSerializer[T]): String =
     config.transformTableName(serializer.tableName)
 
   private val logger: Logger = LoggerFactory.getLogger(classOf[AmazonDynamoDBScalaMapper])
@@ -455,7 +455,21 @@ trait AmazonDynamoDBScalaMapper {
     }
   }
 
-
+  def dumpConditional[T](obj: T, conditionExpression: String, conditionValues: Map[String, AttributeValue])
+                        (implicit serializer: DynamoDBSerializer[T]): Future[Unit] = {
+    val request =
+      new PutItemRequest()
+        .withTableName(tableName)
+        .withConditionExpression(conditionExpression)
+        .withExpressionAttributeValues(conditionValues.asJava)
+        .withItem(serializer.toAttributeMap(obj).asJava)
+    if (logger.isDebugEnabled)
+      request.setReturnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+    client.putItem(request) map { result =>
+      if (logger.isDebugEnabled)
+        logger.debug(s"dump() ConsumedCapacity = ${result.getConsumedCapacity()}")
+    }
+  }
 
   /**
     * A method overloading container for [[loadByKey]].
@@ -2130,7 +2144,7 @@ object AmazonDynamoDBScalaMapper {
     mapperConfig: AmazonDynamoDBScalaMapperConfig = AmazonDynamoDBScalaMapperConfig.Default
   )(implicit exec: ExecutionContext) = new AmazonDynamoDBScalaMapper {
     override val client = dynamoClient
-    override protected val execCtx = exec
+    override val execCtx = exec
     override protected val config = mapperConfig
   }
 }
